@@ -5,7 +5,7 @@ import {
   ExchangeCodeSchema,
   RefreshTokenSchema,
   GenerateSystemTokenSchema,
-} from "../types/mcp-tools";
+} from "../types/mcp-tools.js";
 
 export function setupOAuthTools(server: McpServer, authManager: AuthManager) {
   registerOAuthTools(server, authManager);

@@ -5,7 +5,7 @@ import {
   CreateCustomAudienceSchema,
   CreateLookalikeAudienceSchema,
   EstimateAudienceSizeSchema,
-} from "../types/mcp-tools";
+} from "../types/mcp-tools.js";
 
 export function setupAudienceTools(
   server: McpServer,
