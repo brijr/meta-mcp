@@ -26,6 +26,7 @@ async function main() {
         process.env.META_ACCESS_TOKEN ? "Present" : "Missing"
       }`,
     );
+    console.error("DEBUG ACCESS_TOKEN", process.env.META_ACCESS_TOKEN);
     console.error(
       `   MCP_SERVER_NAME: ${process.env.MCP_SERVER_NAME || "Not set"}`,
     );
