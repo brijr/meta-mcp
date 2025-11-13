@@ -42,7 +42,7 @@ export class AuthManager {
 
   async validateToken(): Promise<boolean> {
     try {
-      console.error("Validating access token using URL:", `${this.getBaseUrl()}/${this.getApiVersion()}/me?access_token=${this.getAccessToken()}`);
+      console.error("Validating access token using URL:", `${this.getBaseUrl()}/${this.getApiVersion()}/me?access_token=[REDACTED]`);
       const response = await fetch(
         `${this.getBaseUrl()}/${this.getApiVersion()}/me?access_token=${this.getAccessToken()}`
       );
