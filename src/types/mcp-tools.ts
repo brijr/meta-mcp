@@ -390,6 +390,10 @@ export const GetInsightsSchema = z.object({
     .max(100)
     .default(25)
     .describe("Number of insights to return"),
+  after: z
+    .string()
+    .optional()
+    .describe("Cursor for pagination (use value from paging.cursors.after/next_cursor)"),
 });
 
 export const ComparePerformanceSchema = z.object({

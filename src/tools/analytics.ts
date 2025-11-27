@@ -31,6 +31,7 @@ export function registerAnalyticsTools(
       fields,
       breakdowns,
       limit,
+      after,
     }) => {
       try {
         const params: Record<string, any> = {
@@ -57,6 +58,10 @@ export function registerAnalyticsTools(
 
         if (breakdowns && breakdowns.length > 0) {
           params.breakdowns = breakdowns;
+        }
+
+        if (after) {
+          params.after = after;
         }
 
         const result = await metaClient.getInsights(object_id, params);
@@ -102,6 +107,7 @@ export function registerAnalyticsTools(
             time_range,
             fields,
             breakdowns,
+            after,
           },
           total_count: insights.length,
         };
