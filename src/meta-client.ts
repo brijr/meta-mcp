@@ -384,6 +384,7 @@ export class MetaApiClient {
       level?: "account" | "campaign" | "adset" | "ad";
       date_preset?: string;
       time_range?: { since: string; until: string };
+      time_increment?: number;
       fields?: string[];
       breakdowns?: string[];
       limit?: number;

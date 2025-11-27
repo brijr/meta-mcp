@@ -27,6 +27,7 @@ export function registerAnalyticsTools(
       level,
       date_preset,
       time_range,
+      time_increment,
       fields,
       breakdowns,
       limit,
@@ -47,6 +48,10 @@ export function registerAnalyticsTools(
 
         if (fields && fields.length > 0) {
           params.fields = fields;
+        }
+
+        if (typeof time_increment === "number") {
+          params.time_increment = time_increment;
         }
 
         if (breakdowns && breakdowns.length > 0) {
