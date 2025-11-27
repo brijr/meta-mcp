@@ -391,6 +391,7 @@ export class MetaApiClient {
       after?: string;
     } = {}
   ): Promise<PaginatedResult<AdInsights>> {
+    const logPaging = process.env.LOG_INSIGHTS_PAGING === "true";
     const queryParams: Record<string, any> = {
       fields:
         params.fields?.join(",") ||
@@ -402,10 +403,35 @@ export class MetaApiClient {
       queryParams.time_range = params.time_range;
     }
 
+    if (logPaging) {
+      console.log("[meta] getInsights request", {
+        objectId,
+        level: params.level,
+        since: params.time_range?.since,
+        until: params.time_range?.until,
+        date_preset: params.date_preset,
+        time_increment: params.time_increment,
+        limit: params.limit,
+        after: params.after,
+        breakdowns: params.breakdowns,
+      });
+    }
+
     const query = this.buildQueryString(queryParams);
     const response = await this.makeRequest<MetaApiResponse<AdInsights>>(
       `${objectId}/insights?${query}`
     );
+
+    if (logPaging) {
+      console.log("[meta] getInsights response", {
+        paging: {
+          cursors: response.paging?.cursors,
+          next: response.paging?.next,
+          previous: response.paging?.previous,
+        },
+        count: response.data?.length ?? 0,
+      });
+    }
 
     return PaginationHelper.parsePaginatedResponse(response);
   }
