@@ -293,13 +293,41 @@ const handler = async (req: Request) => {
             .string()
             .optional()
             .describe("Date preset like 'last_7d', 'last_30d'"),
+          time_range: z
+            .object({
+              since: z.string().describe("Start date (YYYY-MM-DD)"),
+              until: z.string().describe("End date (YYYY-MM-DD)"),
+            })
+            .optional()
+            .describe("Custom date range for insights"),
+          time_increment: z
+            .number()
+            .min(1)
+            .optional()
+            .describe("Time increment for aggregation (e.g., 1 for daily)"),
           fields: z
             .array(z.string())
             .optional()
             .describe("Specific metrics to retrieve"),
+          breakdowns: z
+            .array(z.string())
+            .optional()
+            .describe("Breakdowns to segment insights (e.g., age, gender)"),
           limit: z.number().optional().describe("Number of results to return"),
         },
-        async ({ object_id, level, date_preset, fields, limit }, context) => {
+        async (
+          {
+            object_id,
+            level,
+            date_preset,
+            time_range,
+            time_increment,
+            fields,
+            breakdowns,
+            limit,
+          },
+          context
+        ) => {
           try {
             console.log("📊 Getting insights for:", object_id);
 
@@ -325,11 +353,25 @@ const handler = async (req: Request) => {
             const params: Record<string, any> = {
               level,
               limit: limit || 25,
-              date_preset: date_preset || "last_7d",
             };
+
+            // Prefer explicit time_range over date_preset when provided
+            if (time_range) {
+              params.time_range = time_range;
+            } else {
+              params.date_preset = date_preset || "last_7d";
+            }
+
+            if (typeof time_increment === "number") {
+              params.time_increment = time_increment;
+            }
 
             if (fields && fields.length > 0) {
               params.fields = fields;
+            }
+
+            if (breakdowns && breakdowns.length > 0) {
+              params.breakdowns = breakdowns;
             }
 
             const insights = await metaClient.getInsights(object_id, params);

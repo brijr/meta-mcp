@@ -1,0 +1,88 @@
+# Get Insights Tool – Parameters and Usage
+
+This documents the MCP `get_insights` tool exposed by the Vercel deployment (`/api/mcp`) and the local MCP server. It lists every parameter, defaults, and how they interact.
+
+## Call pattern (JSON-RPC over HTTP)
+
+```bash
+META_MCP_BASE_URL="https://<your-vercel-app>.vercel.app/api/mcp"
+AUTH="Bearer <access-token>"
+
+curl -X POST "$META_MCP_BASE_URL" \
+  -H "Authorization: $AUTH" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": "test",
+    "method": "tools/call",
+    "params": {
+      "name": "get_insights",
+      "arguments": {
+        "object_id": "act_<account_or_object_id>",
+        "level": "campaign",
+        "time_range": {"since": "2025-11-03", "until": "2025-11-05"},
+        "time_increment": 1,
+        "fields": ["date_start", "date_stop", "impressions", "clicks", "spend"],
+        "breakdowns": ["age", "gender"],
+        "limit": 50
+      }
+    }
+  }'
+```
+
+## Parameters
+
+- `object_id` (string, required): The ID to query. Accepts ad account (`act_...`), campaign, ad set, or ad IDs depending on `level`.
+- `level` (enum, required): `"account" | "campaign" | "adset" | "ad"`. Controls aggregation level and which IDs are valid.
+- `time_range` (object, optional): `{ since: "YYYY-MM-DD", until: "YYYY-MM-DD" }`. When provided, it takes precedence over `date_preset`.
+- `date_preset` (enum, optional): One of `today`, `yesterday`, `this_week`, `last_week`, `this_month`, `last_month`, `this_quarter`, `last_quarter`, `this_year`, `last_year`, `lifetime`. Used only when `time_range` is not provided. Default: `last_7d`.
+- `time_increment` (number, optional): Bucket size in days for the results (e.g., `1` for daily, `7` for weekly-style buckets). Omit for a single aggregated range.
+- `fields` (array<string>, optional): Metrics to return. If omitted, defaults to `impressions, clicks, spend, reach, frequency, ctr, cpc, cpm, actions, cost_per_action_type`.
+- `breakdowns` (array<string>, optional): Dimensions to segment by (e.g., `age`, `gender`, `placement`).
+- `limit` (number, optional): Max records per page. Defaults to `25`. The schema allows up to `100`; Meta may cap larger values.
+
+## Behavior and defaults
+
+- **Precedence:** `time_range` overrides `date_preset`. If neither is supplied, `date_preset` defaults to `last_7d`.
+- **Pagination:** Responses include cursors (`hasNextPage`, `hasPreviousPage`, and `paging.cursors.before/after`). Pass the returned `after` cursor as `after` if you extend the client to support it.
+- **Fields default:** If `fields` is omitted, the default metrics listed above are sent to Meta.
+- **Breakdowns:** Include only valid Meta breakdown names; invalid values will be rejected by the API.
+- **time_increment:** Provide an integer day count. Leaving it out returns aggregated data for the whole range.
+
+## Minimal examples
+
+**Custom date range, daily buckets**
+```json
+{
+  "object_id": "act_123",
+  "level": "campaign",
+  "time_range": {"since": "2025-11-03", "until": "2025-11-05"},
+  "time_increment": 1,
+  "fields": ["date_start", "date_stop", "impressions", "clicks", "spend"],
+  "limit": 100
+}
+```
+
+**Preset range, aggregated**
+```json
+{
+  "object_id": "act_123",
+  "level": "account",
+  "date_preset": "last_month",
+  "fields": ["impressions", "clicks", "spend", "actions"],
+  "breakdowns": ["age", "gender"]
+}
+```
+
+**Ad-level pull with custom metrics**
+```json
+{
+  "object_id": "120238830325420237",
+  "level": "ad",
+  "time_range": {"since": "2025-10-01", "until": "2025-10-07"},
+  "fields": ["date_start", "date_stop", "ad_id", "impressions", "clicks", "spend", "ctr", "cpc", "cpm"],
+  "time_increment": 1,
+  "limit": 50
+}
+```
