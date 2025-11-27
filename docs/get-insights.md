@@ -38,7 +38,7 @@ curl -X POST "$META_MCP_BASE_URL" \
 - `time_range` (object, optional): `{ since: "YYYY-MM-DD", until: "YYYY-MM-DD" }`. When provided, it takes precedence over `date_preset`.
 - `date_preset` (enum, optional): One of `today`, `yesterday`, `this_week`, `last_week`, `this_month`, `last_month`, `this_quarter`, `last_quarter`, `this_year`, `last_year`, `lifetime`. Used only when `time_range` is not provided. Default: `last_7d`.
 - `time_increment` (number, optional): Bucket size in days for the results (e.g., `1` for daily, `7` for weekly-style buckets). Omit for a single aggregated range.
-- `fields` (array<string>, optional): Metrics to return. If omitted, defaults to `impressions, clicks, spend, reach, frequency, ctr, cpc, cpm, actions, cost_per_action_type`.
+- `fields` (array<string>, optional): Metrics to return. If omitted, defaults to `impressions, clicks, spend, reach, frequency, ctr, cpc, cpm, actions, cost_per_action_type`. Include `campaign_name`, `adset_name`, or `ad_name` (plus their IDs) if you want names returned alongside performance data.
 - `breakdowns` (array<string>, optional): Dimensions to segment by (e.g., `age`, `gender`, `placement`).
 - `limit` (number, optional): Max records per page. Defaults to `25`. The schema allows up to `100`; Meta may cap larger values.
 
@@ -46,6 +46,8 @@ curl -X POST "$META_MCP_BASE_URL" \
 
 - **Precedence:** `time_range` overrides `date_preset`. If neither is supplied, `date_preset` defaults to `last_7d`.
 - **Pagination:** Responses include cursors (`hasNextPage`, `hasPreviousPage`, and `paging.cursors.before/after`). Pass the returned `after` cursor as `after` if you extend the client to support it.
+- **Ordering + limits:** When `time_increment` is set (e.g., daily) Meta returns rows oldest-first. With a low `limit` and per-ad or breakdown rows, the first page may stop after the earliest 2–3 days of a 7-day preset. Increase `limit` (up to 100) and request subsequent pages with the `after` cursor to cover the whole range.
+- **No zero-fill:** Meta omits days with no delivery; if an ad account was idle, those dates will not appear and must be backfilled client-side if needed.
 - **Fields default:** If `fields` is omitted, the default metrics listed above are sent to Meta.
 - **Breakdowns:** Include only valid Meta breakdown names; invalid values will be rejected by the API.
 - **time_increment:** Provide an integer day count. Leaving it out returns aggregated data for the whole range.
@@ -72,6 +74,17 @@ curl -X POST "$META_MCP_BASE_URL" \
   "date_preset": "last_month",
   "fields": ["impressions", "clicks", "spend", "actions"],
   "breakdowns": ["age", "gender"]
+}
+```
+
+**Include campaign names**
+```json
+{
+  "object_id": "act_123",
+  "level": "campaign",
+  "date_preset": "last_7d",
+  "fields": ["campaign_id", "campaign_name", "impressions", "clicks", "spend", "ctr"],
+  "limit": 50
 }
 ```
 
