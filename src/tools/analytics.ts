@@ -38,10 +38,11 @@ export function registerAnalyticsTools(
           limit: limit || 25,
         };
 
-        if (date_preset) {
-          params.date_preset = date_preset;
-        } else if (time_range) {
+        // Prefer explicit time_range over preset when both are provided
+        if (time_range) {
           params.time_range = time_range;
+        } else if (date_preset) {
+          params.date_preset = date_preset;
         } else {
           params.date_preset = "last_7d"; // Default to last 7 days
         }
@@ -140,10 +141,10 @@ export function registerAnalyticsTools(
           fields: metrics,
         };
 
-        if (date_preset) {
-          params.date_preset = date_preset;
-        } else if (time_range) {
+        if (time_range) {
           params.time_range = time_range;
+        } else if (date_preset) {
+          params.date_preset = date_preset;
         } else {
           params.date_preset = "last_7d";
         }
@@ -245,10 +246,10 @@ export function registerAnalyticsTools(
           limit: 1000, // Get more data for export
         };
 
-        if (date_preset) {
-          params.date_preset = date_preset;
-        } else if (time_range) {
+        if (time_range) {
           params.time_range = time_range;
+        } else if (date_preset) {
+          params.date_preset = date_preset;
         } else {
           params.date_preset = "last_30d"; // Default to last 30 days for export
         }
