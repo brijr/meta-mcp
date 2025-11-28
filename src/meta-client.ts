@@ -400,7 +400,7 @@ export class MetaApiClient {
     const queryParams: Record<string, any> = {
       fields:
         params.fields?.join(",") ||
-        "impressions,clicks,spend,reach,frequency,ctr,cpc,cpm,actions,cost_per_action_type",
+        "date_start,date_stop,impressions,clicks,spend,reach,frequency,ctr,cpc,cpm,actions,cost_per_action_type",
       ...params,
     };
 
