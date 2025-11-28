@@ -422,18 +422,31 @@ export class MetaApiClient {
       `${objectId}/insights?${query}`
     );
 
+    const parsed = PaginationHelper.parsePaginatedResponse(response);
+    const requestedAfter = params.after;
+    const returnedAfter = parsed.paging?.cursors?.after;
+
+    // Guard against Meta occasionally returning the same cursor we sent, which can
+    // otherwise cause clients to loop forever on "has next page".
+    if (requestedAfter && returnedAfter && requestedAfter === returnedAfter) {
+      parsed.hasNextPage = false;
+      if (parsed.paging) {
+        parsed.paging.next = undefined;
+      }
+    }
+
     if (logPaging) {
       console.log("[meta] getInsights response", {
         paging: {
-          cursors: response.paging?.cursors,
-          next: response.paging?.next,
-          previous: response.paging?.previous,
+          cursors: parsed.paging?.cursors,
+          next: parsed.paging?.next,
+          previous: parsed.paging?.previous,
         },
-        count: response.data?.length ?? 0,
+        count: parsed.data?.length ?? 0,
       });
     }
 
-    return PaginationHelper.parsePaginatedResponse(response);
+    return parsed;
   }
 
   // Custom Audience Methods

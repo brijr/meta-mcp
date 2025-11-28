@@ -52,6 +52,7 @@ curl -X POST "$META_MCP_BASE_URL" \
 - **Fields default:** If `fields` is omitted, the default metrics listed above are sent to Meta.
 - **Breakdowns:** Include only valid Meta breakdown names; invalid values will be rejected by the API.
 - **time_increment:** Provide an integer day count. Leaving it out returns aggregated data for the whole range.
+- **Loop guard:** If Meta echoes back the same `after` cursor you provided, the server will mark `has_next_page` as `false` to avoid pagination loops. Treat that response as the final page for that query.
 
 ## Minimal examples
 
