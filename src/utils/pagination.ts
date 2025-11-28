@@ -41,7 +41,8 @@ export class PaginationHelper {
   }
 
   static parsePaginatedResponse<T>(
-    response: MetaApiResponse<T>
+    response: MetaApiResponse<T>,
+    requestedAfter?: string
   ): PaginatedResult<T> {
     const hasNextPage = Boolean(
       response.paging?.next || response.paging?.cursors?.after
@@ -50,12 +51,14 @@ export class PaginationHelper {
       response.paging?.previous || response.paging?.cursors?.before
     );
 
-    return {
+    const result: PaginatedResult<T> = {
       data: response.data || [],
       paging: response.paging,
       hasNextPage,
       hasPreviousPage,
     };
+
+    return this.applyLoopGuard(result, requestedAfter);
   }
 
   static getNextPageParams(
@@ -207,5 +210,31 @@ export class PaginationHelper {
       endCursor: result.paging?.cursors?.after,
       totalCount: result.totalCount,
     };
+  }
+
+  private static applyLoopGuard<T>(
+    result: PaginatedResult<T>,
+    requestedAfter?: string
+  ): PaginatedResult<T> {
+    if (!requestedAfter) {
+      return result;
+    }
+
+    const returnedAfter = result.paging?.cursors?.after;
+    const nextCursor = this.extractCursorFromUrl(result.paging?.next);
+
+    const cursorRepeats = returnedAfter && returnedAfter === requestedAfter;
+    const nextRepeats =
+      nextCursor === requestedAfter ||
+      (!nextCursor && !result.paging?.next); // No next URL means we can't advance
+
+    if (cursorRepeats && nextRepeats) {
+      result.hasNextPage = false;
+      if (result.paging) {
+        result.paging.next = undefined;
+      }
+    }
+
+    return result;
   }
 }

@@ -142,7 +142,10 @@ export class MetaApiClient {
       formattedAccountId
     );
 
-    return PaginationHelper.parsePaginatedResponse(response);
+    return PaginationHelper.parsePaginatedResponse(
+      response,
+      paginationParams.after
+    );
   }
 
   async getCampaign(campaignId: string): Promise<Campaign> {
@@ -252,7 +255,10 @@ export class MetaApiClient {
       accountId ? this.auth.getAccountId(accountId) : undefined
     );
 
-    return PaginationHelper.parsePaginatedResponse(response);
+    return PaginationHelper.parsePaginatedResponse(
+      response,
+      paginationParams.after
+    );
   }
 
   async createAdSet(
@@ -407,7 +413,7 @@ export class MetaApiClient {
       `${objectId}/insights?${query}`
     );
 
-    return PaginationHelper.parsePaginatedResponse(response);
+    return PaginationHelper.parsePaginatedResponse(response, params.after);
   }
 
   // Custom Audience Methods
@@ -433,7 +439,10 @@ export class MetaApiClient {
       formattedAccountId
     );
 
-    return PaginationHelper.parsePaginatedResponse(response);
+    return PaginationHelper.parsePaginatedResponse(
+      response,
+      paginationParams.after
+    );
   }
 
   async createCustomAudience(
@@ -512,7 +521,10 @@ export class MetaApiClient {
       formattedAccountId
     );
 
-    return PaginationHelper.parsePaginatedResponse(response);
+    return PaginationHelper.parsePaginatedResponse(
+      response,
+      paginationParams.after
+    );
   }
 
   async createAdCreative(
@@ -652,7 +664,10 @@ export class MetaApiClient {
       accountId ? this.auth.getAccountId(accountId) : undefined
     );
 
-    return PaginationHelper.parsePaginatedResponse(response);
+    return PaginationHelper.parsePaginatedResponse(
+      response,
+      paginationParams.after
+    );
   }
 
   async getAdsByCampaign(
@@ -678,7 +693,7 @@ export class MetaApiClient {
       undefined
     );
 
-    return PaginationHelper.parsePaginatedResponse(result);
+    return PaginationHelper.parsePaginatedResponse(result, params.after);
   }
 
   async getAdsByAccount(
@@ -705,7 +720,7 @@ export class MetaApiClient {
       formattedAccountId
     );
 
-    return PaginationHelper.parsePaginatedResponse(result);
+    return PaginationHelper.parsePaginatedResponse(result, params.after);
   }
 
   // Account and Business Methods

@@ -47,3 +47,35 @@ describe("PaginationHelper getNextPageParams", () => {
     expect(calls[1].after).toBe("XYZ");
   });
 });
+
+describe("PaginationHelper loop guard", () => {
+  it("clears hasNextPage when Meta repeats the requested cursor", () => {
+    const response = {
+      data: [],
+      paging: {
+        cursors: { after: "CUR" },
+        next: "https://graph.facebook.com/v23.0/act_1/insights?after=CUR",
+      },
+    };
+
+    const parsed = PaginationHelper.parsePaginatedResponse(response, "CUR");
+
+    expect(parsed.hasNextPage).toBe(false);
+    expect(parsed.paging?.next).toBeUndefined();
+  });
+
+  it("keeps paging when next cursor advances", () => {
+    const response = {
+      data: [],
+      paging: {
+        cursors: { after: "CUR" },
+        next: "https://graph.facebook.com/v23.0/act_1/insights?after=CUR-2",
+      },
+    };
+
+    const parsed = PaginationHelper.parsePaginatedResponse(response, "CUR");
+
+    expect(parsed.hasNextPage).toBe(true);
+    expect(parsed.paging?.next).toContain("CUR-2");
+  });
+});
