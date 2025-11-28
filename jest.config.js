@@ -10,6 +10,11 @@ export default {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1'
   },
+  extensionsToTreatAsEsm: ['.ts'],
+  transform: {
+    '^.+\\.(ts|tsx)$': ['ts-jest', { useESM: true }]
+  },
+  testPathIgnorePatterns: ['<rootDir>/__tests__/setup.js'],
   transformIgnorePatterns: [
     'node_modules/(?!(@modelcontextprotocol)/)'
   ],

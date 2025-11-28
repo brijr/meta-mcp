@@ -62,12 +62,20 @@ export class PaginationHelper {
     result: PaginatedResult<any>,
     currentLimit?: number
   ): PaginationParams | null {
-    if (!result.hasNextPage || !result.paging?.cursors?.after) {
+    if (!result.hasNextPage) {
+      return null;
+    }
+
+    const cursor =
+      result.paging?.cursors?.after ||
+      this.extractCursorFromUrl(result.paging?.next);
+
+    if (!cursor) {
       return null;
     }
 
     return {
-      after: result.paging.cursors.after,
+      after: cursor,
       limit: currentLimit,
     };
   }

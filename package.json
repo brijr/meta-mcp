@@ -11,7 +11,7 @@
     "build": "tsc",
     "dev": "tsx src/index.ts",
     "dev:vercel": "vercel dev",
-    "test": "jest",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
     "test:tools": "tsx test-tools.js",
     "list:tools": "tsx list-tools.js",
     "test:api": "tsx test-api.js",
