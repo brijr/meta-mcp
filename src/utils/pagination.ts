@@ -224,11 +224,10 @@ export class PaginationHelper {
     const nextCursor = this.extractCursorFromUrl(result.paging?.next);
 
     const cursorRepeats = returnedAfter && returnedAfter === requestedAfter;
-    const nextRepeats =
-      nextCursor === requestedAfter ||
-      (!nextCursor && !result.paging?.next); // No next URL means we can't advance
+    const nextRepeatsOrMissing =
+      !nextCursor || nextCursor === requestedAfter;
 
-    if (cursorRepeats && nextRepeats) {
+    if (cursorRepeats && nextRepeatsOrMissing) {
       result.hasNextPage = false;
       if (result.paging) {
         result.paging.next = undefined;

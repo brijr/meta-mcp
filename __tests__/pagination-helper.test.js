@@ -78,4 +78,19 @@ describe("PaginationHelper loop guard", () => {
     expect(parsed.hasNextPage).toBe(true);
     expect(parsed.paging?.next).toContain("CUR-2");
   });
+
+  it("stops when cursor repeats but next link lacks a cursor", () => {
+    const response = {
+      data: [],
+      paging: {
+        cursors: { after: "CUR" },
+        next: "https://graph.facebook.com/v23.0/act_1/insights?limit=100",
+      },
+    };
+
+    const parsed = PaginationHelper.parsePaginatedResponse(response, "CUR");
+
+    expect(parsed.hasNextPage).toBe(false);
+    expect(parsed.paging?.next).toBeUndefined();
+  });
 });
