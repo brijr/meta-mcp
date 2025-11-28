@@ -6,14 +6,20 @@ export default {
     '**/__tests__/**/*.+(js)',
     '**/?(*.)+(spec|test).+(js)'
   ],
-  transform: {},
-  moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1'
-  },
-  extensionsToTreatAsEsm: ['.ts'],
   transform: {
     '^.+\\.(ts|tsx)$': ['ts-jest', { useESM: true }]
   },
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+    '^\\.\\/rate-limiter\\.js$': '<rootDir>/src/utils/rate-limiter.ts',
+    '^\\.\\.\\/types/meta-api\\.js$': '<rootDir>/src/types/meta-api.ts',
+    '^\\.\\/utils/auth\\.js$': '<rootDir>/src/utils/auth.ts',
+    '^\\.\\/utils/rate-limiter\\.js$': '<rootDir>/src/utils/rate-limiter.ts',
+    '^\\.\\/utils/error-handler\\.js$': '<rootDir>/src/utils/error-handler.ts',
+    '^\\.\\/utils/pagination\\.js$': '<rootDir>/src/utils/pagination.ts',
+    '^\\.\\/meta-client\\.js$': '<rootDir>/src/meta-client.ts'
+  },
+  extensionsToTreatAsEsm: ['.ts'],
   testPathIgnorePatterns: ['<rootDir>/__tests__/setup.js'],
   transformIgnorePatterns: [
     'node_modules/(?!(@modelcontextprotocol)/)'

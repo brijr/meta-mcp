@@ -131,7 +131,9 @@ export class MetaApiClient {
     };
 
     if (status) {
-      queryParams.effective_status = JSON.stringify([status]);
+      queryParams.effective_status = JSON.stringify(
+        Array.isArray(status) ? status : [status]
+      );
     }
 
     const query = this.buildQueryString(queryParams);
@@ -244,7 +246,9 @@ export class MetaApiClient {
     };
 
     if (status) {
-      queryParams.effective_status = JSON.stringify([status]);
+      queryParams.effective_status = JSON.stringify(
+        Array.isArray(status) ? status : [status]
+      );
     }
 
     const query = this.buildQueryString(queryParams);
@@ -653,7 +657,9 @@ export class MetaApiClient {
     };
 
     if (status) {
-      queryParams.effective_status = JSON.stringify([status]);
+      queryParams.effective_status = JSON.stringify(
+        Array.isArray(status) ? status : [status]
+      );
     }
 
     const query = this.buildQueryString(queryParams);
