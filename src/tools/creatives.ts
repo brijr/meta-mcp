@@ -222,6 +222,11 @@ export function registerCreativeTools(
             video_id: video_id,
           };
 
+          // Add thumbnail image hash for video ads (required by Meta API)
+          if (image_hash) {
+            object_story_spec.video_data.image_hash = image_hash;
+          }
+
           if (message) {
             object_story_spec.video_data.message = message;
           }
