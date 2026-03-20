@@ -1,62 +1,29 @@
 {
-  "name": "meta-ads-mcp",
-  "version": "1.7.0",
-  "description": "Model Context Protocol server for Meta Marketing API integration",
-  "main": "build/index.js",
-  "type": "module",
-  "bin": {
-    "meta-ads-mcp": "build/index.js"
+  "name": "meta-mcp-2",
+  "version": "0.1.0",
+  "description": "An xmcp application with tool syntax",
+  "engines": {
+    "node": ">=20.0.0"
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsx src/index.ts",
-    "dev:vercel": "vercel dev",
-    "test": "jest",
-    "test:tools": "tsx test-tools.js",
-    "list:tools": "tsx list-tools.js",
-    "test:api": "tsx test-api.js",
-    "lint": "eslint src/**/*.ts",
-    "prepare": "npm run build",
-    "vercel-build": "npm run build",
-    "setup": "node scripts/setup-mcp.js",
-    "setup:mcp": "node scripts/setup-mcp.js",
-    "health-check": "node scripts/health-check.js",
-    "check": "node scripts/health-check.js"
+    "build": "xmcp build --cf",
+    "dev": "npm run build && concurrently \"xmcp dev --cf\" \"npx wrangler dev\"",
+    "start": "node dist/http.js",
+    "deploy": "npm run build && npx wrangler deploy",
+    "preview": "npm run build && npx wrangler dev",
+    "test": "vitest run"
   },
-  "author": "Meta Ads MCP",
-  "license": "MIT",
-  "keywords": [
-    "mcp",
-    "model-context-protocol",
-    "meta",
-    "facebook",
-    "instagram",
-    "advertising",
-    "marketing-api"
-  ],
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.25.2",
-    "@vercel/kv": "^3.0.0",
-    "@vercel/mcp-adapter": "^0.11.2",
-    "dotenv": "^17.2.3",
-    "jose": "^6.1.3",
-    "node-fetch": "^3.3.2",
-    "redis": "^5.10.0",
-    "zod": "^3.25.76"
+    "jose": "^6.2.2",
+    "xmcp": "0.6.5",
+    "zod": "^4.0.0"
   },
+  "type": "module",
   "devDependencies": {
-    "@faker-js/faker": "^9.9.0",
-    "@types/jest": "^29.5.14",
-    "@types/node": "^20.19.28",
-    "@typescript-eslint/eslint-plugin": "^8.52.0",
-    "@typescript-eslint/parser": "^8.52.0",
-    "eslint": "^9.39.2",
-    "jest": "^29.7.0",
-    "ts-jest": "^29.4.6",
-    "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
-  },
-  "engines": {
-    "node": ">=18.0.0"
+    "@cloudflare/workers-types": "^4.20241112.0",
+    "@types/node": "^24.10.1",
+    "concurrently": "^9.2.0",
+    "vitest": "^4.1.0",
+    "wrangler": "^4.61.1"
   }
 }
