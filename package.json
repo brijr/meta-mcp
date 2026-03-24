@@ -1,5 +1,5 @@
 {
-  "name": "meta-mcp-2",
+  "name": "meta-mcp",
   "version": "0.1.0",
   "description": "An xmcp application with tool syntax",
   "engines": {
