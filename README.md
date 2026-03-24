@@ -34,6 +34,7 @@ You bring:
 ## Endpoints
 
 - `GET /health`
+- `GET /app`
 - `POST /mcp`
 - `GET /oauth/meta/start`
 - `GET /oauth/meta/callback`
@@ -125,11 +126,15 @@ Required secrets:
 - `META_APP_ID`
 - `META_APP_SECRET`
 - `META_TOKEN_ENCRYPTION_KEY`
+- `APP_UI_PASSWORD` for the built-in admin page at `/app`
 
 Optional configuration:
 
 - `JWT_ISSUER`
 - `JWT_AUDIENCE`
+- `APP_SESSION_SECRET`
+- `APP_UI_WORKSPACE_ID`
+- `APP_UI_USER_ID`
 - `META_REDIRECT_URI`
 - `META_GRAPH_VERSION`
 - `META_OAUTH_SCOPES`
@@ -139,6 +144,34 @@ Defaults:
 
 - `META_GRAPH_VERSION=v25.0`
 - `META_OAUTH_SCOPES=ads_management,business_management`
+- `APP_UI_WORKSPACE_ID=workspace_admin`
+- `APP_UI_USER_ID=app_admin`
+
+## Built-In Admin UI
+
+The Worker now includes a small browser UI at `/app`.
+
+What it does:
+
+- prompts for an admin password
+- starts the existing Meta OAuth flow without requiring you to manually mint a bearer JWT
+- shows whether a Meta account is connected for the admin workspace
+- loads accessible ad accounts using the same service logic as `get_ad_accounts`
+
+Required setup:
+
+1. Set `APP_UI_PASSWORD` on the Worker.
+2. Make sure `META_REDIRECT_URI` matches your public host, for example:
+
+```text
+https://meta-mcp.gestalt.xyz/oauth/meta/callback
+```
+
+3. Open:
+
+```text
+https://meta-mcp.gestalt.xyz/app
+```
 
 ## Meta App Setup
 

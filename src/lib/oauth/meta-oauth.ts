@@ -18,6 +18,11 @@ interface MetaOAuthState {
   returnTo: string | null;
 }
 
+interface MetaOAuthIdentity {
+  userId: string;
+  workspaceId: string;
+}
+
 function getRedirectUri(request: Request): string {
   const configured = getBindings().META_REDIRECT_URI;
   if (configured) {
@@ -152,14 +157,26 @@ export async function handleMetaOAuthStart(request: Request): Promise<Response> 
     );
   }
 
-  const state = crypto.randomUUID();
-  const returnTo = normalizeReturnTo(
+  return beginMetaOAuth(
     request,
+    {
+      userId: String(authExtra.userId),
+      workspaceId: String(authExtra.workspaceId),
+    },
     new URL(request.url).searchParams.get("return_to")
   );
+}
+
+export async function beginMetaOAuth(
+  request: Request,
+  identity: MetaOAuthIdentity,
+  returnToRaw: string | null
+): Promise<Response> {
+  const state = crypto.randomUUID();
+  const returnTo = normalizeReturnTo(request, returnToRaw);
   await persistState(state, {
-    userId: String(authExtra.userId),
-    workspaceId: String(authExtra.workspaceId),
+    userId: identity.userId,
+    workspaceId: identity.workspaceId,
     returnTo,
   });
 

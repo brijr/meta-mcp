@@ -15,24 +15,28 @@ export interface MetaToolContext {
   meta: MetaGraphClient;
 }
 
+export async function createMetaToolContext(
+  auth: AuthContext
+): Promise<MetaToolContext> {
+  const env = getBindings();
+  const connection = await requireMetaConnection(auth.workspaceId);
+  const meta = new MetaGraphClient(connection.accessToken);
+
+  return {
+    auth,
+    env,
+    connection,
+    meta,
+  };
+}
+
 export function createMetaToolHandler<TArgs>(
   handler: (args: TArgs, context: MetaToolContext) => Promise<ToolResponsePayload>
 ) {
   return async (args: TArgs, extra: ToolExtraArguments) => {
     try {
       const auth = getAuthContext(extra);
-      const env = getBindings();
-      const connection = await requireMetaConnection(auth.workspaceId);
-      const meta = new MetaGraphClient(connection.accessToken);
-
-      return toolSuccess(
-        await handler(args, {
-          auth,
-          env,
-          connection,
-          meta,
-        })
-      );
+      return toolSuccess(await handler(args, await createMetaToolContext(auth)));
     } catch (error) {
       return toolError(error);
     }

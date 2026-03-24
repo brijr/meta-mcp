@@ -199,6 +199,7 @@ export function createTestBindings(
     META_APP_SECRET: "meta-app-secret",
     META_TOKEN_ENCRYPTION_KEY: "test-encryption-secret",
     META_OAUTH_ALLOWED_RETURN_ORIGINS: "",
+    APP_UI_PASSWORD: "open-sesame",
     ...overrides,
   };
 }

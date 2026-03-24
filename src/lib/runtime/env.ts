@@ -37,6 +37,10 @@ export interface AppBindings {
   META_TOKEN_ENCRYPTION_KEY?: string;
   META_OAUTH_SCOPES?: string;
   META_OAUTH_ALLOWED_RETURN_ORIGINS?: string;
+  APP_SESSION_SECRET?: string;
+  APP_UI_PASSWORD?: string;
+  APP_UI_WORKSPACE_ID?: string;
+  APP_UI_USER_ID?: string;
 }
 
 let bindingsOverride: AppBindings | undefined;

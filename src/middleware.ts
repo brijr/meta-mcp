@@ -5,6 +5,9 @@ import {
   handleMetaOAuthCallback,
   handleMetaOAuthStart,
 } from "./lib/oauth/meta-oauth";
+import { appMiddleware as appRouteMiddleware } from "./lib/web/app";
+
+export const appMiddleware = appRouteMiddleware;
 
 function jsonErrorResponse(error: unknown): Response {
   const normalized = normalizeAppError(error);
@@ -25,7 +28,7 @@ function jsonErrorResponse(error: unknown): Response {
   );
 }
 
-const metaOAuthMiddleware: WebMiddleware = async (request) => {
+export const metaOAuthMiddleware: WebMiddleware = async (request) => {
   const url = new URL(request.url);
 
   if (url.pathname === "/oauth/meta/start") {
@@ -47,7 +50,7 @@ const metaOAuthMiddleware: WebMiddleware = async (request) => {
   return undefined;
 };
 
-const mcpJwtMiddleware: WebMiddleware = async (request, context) => {
+export const mcpJwtMiddleware: WebMiddleware = async (request, context) => {
   const url = new URL(request.url);
   if (url.pathname !== "/mcp") {
     return undefined;
@@ -66,4 +69,4 @@ const mcpJwtMiddleware: WebMiddleware = async (request, context) => {
   }
 };
 
-export default [metaOAuthMiddleware, mcpJwtMiddleware];
+export default [appMiddleware, metaOAuthMiddleware, mcpJwtMiddleware];
