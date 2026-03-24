@@ -9,6 +9,12 @@
 	"compatibility_flags": [
 		"nodejs_compat"
 	],
+	"routes": [
+		{
+			"pattern": "meta-mcp.gestalt.xyz",
+			"custom_domain": true
+		}
+	],
 	// Observability (Workers Logs)
 	"observability": {
 		"enabled": true
