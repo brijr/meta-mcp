@@ -1,4 +1,5 @@
 import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "jose";
+import { SignJWT } from "jose";
 import {
   ConfigurationError,
   UnauthorizedError,
@@ -138,4 +139,51 @@ export async function verifyBearerJwt(token: string): Promise<AuthInfo> {
 export async function authenticateRequest(request: Request): Promise<AuthInfo> {
   const token = extractBearerToken(request);
   return verifyBearerJwt(token);
+}
+
+export async function issueBearerJwt(input: {
+  userId: string;
+  workspaceId: string;
+  roles?: string[];
+  scopes?: string[];
+  expiresIn?: string;
+  clientId?: string;
+}): Promise<{ token: string; expiresIn: string }> {
+  const bindings = getBindings();
+  if (bindings.JWT_JWKS_URL) {
+    throw new ConfigurationError(
+      "This Worker verifies MCP tokens with JWT_JWKS_URL, so the admin app cannot mint bearer tokens locally."
+    );
+  }
+
+  if (!bindings.JWT_SECRET) {
+    throw new ConfigurationError(
+      "Configure JWT_SECRET to mint MCP bearer tokens from the admin app."
+    );
+  }
+
+  const expiresIn = input.expiresIn ?? "1h";
+  const jwt = new SignJWT({
+    workspaceId: input.workspaceId,
+    roles: input.roles ?? ["admin"],
+    scopes: input.scopes ?? ["mcp"],
+    client_id: input.clientId ?? "meta-mcp-admin",
+  })
+    .setProtectedHeader({ alg: "HS256" })
+    .setSubject(input.userId)
+    .setIssuedAt()
+    .setExpirationTime(expiresIn);
+
+  if (bindings.JWT_ISSUER) {
+    jwt.setIssuer(bindings.JWT_ISSUER);
+  }
+
+  if (bindings.JWT_AUDIENCE) {
+    jwt.setAudience(bindings.JWT_AUDIENCE);
+  }
+
+  return {
+    token: await jwt.sign(encoder.encode(bindings.JWT_SECRET)),
+    expiresIn,
+  };
 }

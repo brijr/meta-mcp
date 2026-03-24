@@ -1,5 +1,6 @@
 import type { WebMiddleware } from "xmcp/cloudflare";
 import type { AuthContext } from "../auth/context";
+import { issueBearerJwt } from "../auth/jwt";
 import { normalizeAppError } from "../errors";
 import { beginMetaOAuth } from "../oauth/meta-oauth";
 import { getMetaConnectionByWorkspaceId } from "../storage/connection-repo";
@@ -416,6 +417,17 @@ function renderAppPage(url: URL, session: { userId: string; workspaceId: string 
         min-height: 220px;
       }
 
+      .token-box {
+        display: grid;
+        gap: 12px;
+      }
+
+      .helper {
+        color: var(--muted);
+        font-size: 0.95rem;
+        line-height: 1.45;
+      }
+
       @media (max-width: 720px) {
         .hero, .panel { border-radius: 20px; }
         .hero, .panel { padding: 20px; }
@@ -455,12 +467,27 @@ function renderAppPage(url: URL, session: { userId: string; workspaceId: string 
           </div>
           <pre id="accounts-output">Waiting for a request.</pre>
         </section>
+        <section class="panel">
+          <h2>Agent Access</h2>
+          <p>Generate a short-lived MCP bearer token for the current workspace, then paste the config into your agent or MCP client.</p>
+          <div class="token-box">
+            <div class="actions">
+              <button class="button" id="generate-token" type="button">Generate MCP Token</button>
+              <button class="button secondary" id="copy-config" type="button">Copy Config</button>
+            </div>
+            <div class="helper">This token is intended for MCP clients that connect to <code>/mcp</code>. It is separate from the browser session cookie used by this admin page.</div>
+            <pre id="token-output">No MCP token generated yet.</pre>
+          </div>
+        </section>
       </section>
     </main>
     <script>
       const statusNode = document.getElementById("status");
       const outputNode = document.getElementById("accounts-output");
       const loadButton = document.getElementById("load-accounts");
+      const tokenNode = document.getElementById("token-output");
+      const generateTokenButton = document.getElementById("generate-token");
+      const copyConfigButton = document.getElementById("copy-config");
 
       function setStatus(message, detail, tone) {
         statusNode.innerHTML = "<strong>" + message + "</strong><span>" + detail + "</span>";
@@ -511,8 +538,75 @@ function renderAppPage(url: URL, session: { userId: string; workspaceId: string 
         outputNode.textContent = JSON.stringify(payload.items || [], null, 2);
       }
 
+      async function generateToken() {
+        tokenNode.textContent = "Generating MCP token...";
+        const response = await fetch("/app/api/mcp-token", {
+          headers: { accept: "application/json" }
+        });
+        const payload = await readJson(response);
+
+        if (!response.ok) {
+          tokenNode.textContent = JSON.stringify(payload, null, 2);
+          return null;
+        }
+
+        const config = {
+          mcpServers: {
+            "meta-mcp": {
+              transport: "http",
+              url: payload.url,
+              headers: {
+                Authorization: "Bearer " + payload.token
+              }
+            }
+          }
+        };
+
+        tokenNode.textContent = JSON.stringify({
+          token: payload.token,
+          expiresIn: payload.expiresIn,
+          workspaceId: payload.workspaceId,
+          url: payload.url,
+          exampleConfig: config
+        }, null, 2);
+
+        return JSON.stringify(config, null, 2);
+      }
+
       loadButton.addEventListener("click", () => {
         void loadAdAccounts();
+      });
+
+      generateTokenButton.addEventListener("click", () => {
+        void generateToken();
+      });
+
+      copyConfigButton.addEventListener("click", async () => {
+        const current = tokenNode.textContent || "";
+        if (!current || current === "No MCP token generated yet.") {
+          const generated = await generateToken();
+          if (!generated) {
+            return;
+          }
+          await navigator.clipboard.writeText(generated);
+          copyConfigButton.textContent = "Copied";
+          setTimeout(() => {
+            copyConfigButton.textContent = "Copy Config";
+          }, 1200);
+          return;
+        }
+
+        try {
+          const parsed = JSON.parse(current);
+          const configText = JSON.stringify(parsed.exampleConfig, null, 2);
+          await navigator.clipboard.writeText(configText);
+          copyConfigButton.textContent = "Copied";
+          setTimeout(() => {
+            copyConfigButton.textContent = "Copy Config";
+          }, 1200);
+        } catch {
+          await navigator.clipboard.writeText(current);
+        }
       });
 
       void loadStatus();
@@ -646,6 +740,24 @@ export const appMiddleware: WebMiddleware = async (request) => {
       return jsonResponse({
         text: result.text,
         ...(result.data ?? {}),
+      });
+    }
+
+    if (url.pathname === "/app/api/mcp-token" && request.method === "GET") {
+      const session = await requireAppSession(request);
+      const issued = await issueBearerJwt({
+        userId: session.userId,
+        workspaceId: session.workspaceId,
+        roles: ["admin"],
+        scopes: ["mcp"],
+        expiresIn: "1h",
+      });
+
+      return jsonResponse({
+        token: issued.token,
+        expiresIn: issued.expiresIn,
+        workspaceId: session.workspaceId,
+        url: new URL("/mcp", url).toString(),
       });
     }
 

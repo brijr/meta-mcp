@@ -333,4 +333,49 @@ describe("middleware", () => {
       }),
     ]);
   });
+
+  it("returns a usable mcp token from the admin app api", async () => {
+    setBindingsForTests(createTestBindings());
+
+    const cookie = await createAppSessionToken({
+      userId: "app_admin",
+      workspaceId: "workspace_admin",
+    });
+
+    const response = await appMiddleware(
+      new Request("https://example.com/app/api/mcp-token", {
+        headers: {
+          cookie: `meta_mcp_app_session=${encodeURIComponent(cookie)}`,
+        },
+      }),
+      {
+        setAuth: vi.fn(),
+      } as never
+    );
+
+    expect(response?.status).toBe(200);
+    const payload = await response?.json() as {
+      token: string;
+      workspaceId: string;
+      url: string;
+    };
+
+    expect(payload.workspaceId).toBe("workspace_admin");
+    expect(payload.url).toBe("https://example.com/mcp");
+    expect(payload.token).toEqual(expect.any(String));
+
+    const verifyResponse = await mcpJwtMiddleware(
+      new Request("https://example.com/mcp", {
+        method: "POST",
+        headers: {
+          authorization: `Bearer ${payload.token}`,
+        },
+      }),
+      {
+        setAuth: vi.fn(),
+      } as never
+    );
+
+    expect(verifyResponse).toBeUndefined();
+  });
 });
