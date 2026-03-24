@@ -1,11 +1,9 @@
-node_modules
-build
-npm-debug.log
-.env
-.DS_Store
-.claude
+# Dependencies
+node_modules/
 .vercel
-.env*.local
-.kiro
-.claude
-CLAUDE.md
+dist
+worker.js
+.xmcp
+xmcp-env.d.ts
+.env
+.wrangler
