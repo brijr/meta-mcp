@@ -20,7 +20,7 @@ export async function createMetaToolContext(
 ): Promise<MetaToolContext> {
   const env = getBindings();
   const connection = await requireMetaConnection(auth.workspaceId);
-  const meta = new MetaGraphClient(connection.accessToken);
+  const meta = new MetaGraphClient(connection.accessToken, env.META_APP_SECRET);
 
   return {
     auth,

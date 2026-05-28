@@ -139,7 +139,10 @@ async function exchangeMetaCodeForToken(request: Request, code: string) {
 }
 
 async function fetchGraphUser(accessToken: string) {
-  const client = new MetaGraphClient(accessToken);
+  const client = new MetaGraphClient(
+    accessToken,
+    getBindings().META_APP_SECRET
+  );
   return client.get<{ id: string; name?: string }>("me", {
     fields: "id,name",
   });

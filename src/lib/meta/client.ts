@@ -22,6 +22,28 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function computeAppSecretProof(
+  accessToken: string,
+  appSecret: string
+): Promise<string> {
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(appSecret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    encoder.encode(accessToken)
+  );
+  return Array.from(new Uint8Array(signature))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 function serializeParamValue(value: unknown): string {
   if (typeof value === "string") {
     return value;
@@ -65,10 +87,26 @@ export interface MetaListResult<T> {
 }
 
 export class MetaGraphClient {
+  private appSecretProof?: Promise<string>;
+
   constructor(
     private readonly accessToken: string,
+    private readonly appSecret?: string,
     private readonly version = getMetaGraphVersion()
   ) {}
+
+  private getAppSecretProof(): Promise<string> | undefined {
+    if (!this.appSecret) {
+      return undefined;
+    }
+    if (!this.appSecretProof) {
+      this.appSecretProof = computeAppSecretProof(
+        this.accessToken,
+        this.appSecret
+      );
+    }
+    return this.appSecretProof;
+  }
 
   async get<T>(
     path: string,
@@ -125,7 +163,12 @@ export class MetaGraphClient {
     }
   ): Promise<T> {
     const url = this.buildUrl(path);
-    const params = { ...(options.params ?? {}), access_token: this.accessToken };
+    const proof = await this.getAppSecretProof();
+    const params = {
+      ...(options.params ?? {}),
+      access_token: this.accessToken,
+      ...(proof ? { appsecret_proof: proof } : {}),
+    };
     const maxAttempts = options.retryable ? 3 : 1;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
@@ -137,6 +180,9 @@ export class MetaGraphClient {
           response = await fetch(url, { method });
         } else if (options.formData) {
           options.formData.set("access_token", this.accessToken);
+          if (proof) {
+            options.formData.set("appsecret_proof", proof);
+          }
           response = await fetch(url, { method, body: options.formData });
         } else {
           response = await fetch(url, {
@@ -160,16 +206,47 @@ export class MetaGraphClient {
       }
 
       const text = await response.text();
-      const parsed =
-        text.length > 0
-          ? (JSON.parse(text) as T & MetaErrorEnvelope)
-          : ({} as T & MetaErrorEnvelope);
+      const isRetryableStatus =
+        response.status === 429 || response.status >= 500;
+
+      let parsed: (T & MetaErrorEnvelope) | undefined;
+      if (text.length === 0) {
+        parsed = {} as T & MetaErrorEnvelope;
+      } else {
+        try {
+          parsed = JSON.parse(text) as T & MetaErrorEnvelope;
+        } catch (parseError) {
+          // Meta returned a non-JSON body — e.g. an HTML error page or a
+          // form-encoded OAuth error like "error=invalid_token". Surface a
+          // structured error instead of letting JSON.parse throw an uncaught
+          // SyntaxError that closes the MCP connection. (#15)
+          if (isRetryableStatus && attempt < maxAttempts) {
+            await sleep(200 * attempt);
+            continue;
+          }
+
+          const snippet =
+            text.length > 500 ? `${text.slice(0, 500)}…` : text;
+          throw new MetaApiError(
+            `Meta Graph API returned a non-JSON response (HTTP ${response.status}).`,
+            {
+              httpStatus: response.status,
+              details: {
+                path,
+                method,
+                contentType: response.headers.get("content-type") ?? "",
+                body: snippet,
+              },
+              cause: parseError,
+            }
+          );
+        }
+      }
 
       if (response.ok && !parsed.error) {
         return parsed as T;
       }
 
-      const isRetryableStatus = response.status === 429 || response.status >= 500;
       if (isRetryableStatus && attempt < maxAttempts) {
         await sleep(200 * attempt);
         continue;
