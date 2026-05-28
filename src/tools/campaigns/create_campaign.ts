@@ -13,7 +13,12 @@ export const schema = {
   name: z.string(),
   objective: z.string(),
   buying_type: z.string().optional(),
-  special_ad_categories: z.array(z.string()).optional(),
+  special_ad_categories: z
+    .array(z.string())
+    .default([])
+    .describe(
+      "Required by Meta on every campaign. Pass [] when no special ad category applies, or values like HOUSING, EMPLOYMENT, CREDIT, ISSUES_ELECTIONS_POLITICS, FINANCIAL_PRODUCTS_SERVICES, ONLINE_GAMBLING_AND_GAMING."
+    ),
   status: z.string().optional(),
   budget: budgetSchema.optional(),
   meta_overrides: metaOverridesSchema,
