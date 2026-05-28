@@ -84,6 +84,7 @@ export async function createAdSetService(
     };
     status?: string;
     bid_amount?: number;
+    promoted_object?: Record<string, unknown>;
     meta_overrides?: Record<string, unknown>;
   },
   context: MetaToolContext
@@ -95,6 +96,7 @@ export async function createAdSetService(
     billing_event: args.billing_event,
     status: args.status ?? "PAUSED",
     bid_amount: args.bid_amount,
+    promoted_object: args.promoted_object,
   };
   payload = applyBudgetFields(payload, args.budget);
   payload = applyScheduleFields(payload, args.schedule);
@@ -129,6 +131,7 @@ export async function updateAdSetService(
     bid_amount?: number;
     optimization_goal?: string;
     billing_event?: string;
+    promoted_object?: Record<string, unknown>;
     meta_overrides?: Record<string, unknown>;
   },
   context: MetaToolContext
@@ -139,6 +142,7 @@ export async function updateAdSetService(
     bid_amount: args.bid_amount,
     optimization_goal: args.optimization_goal,
     billing_event: args.billing_event,
+    promoted_object: args.promoted_object,
   };
   payload = applyBudgetFields(payload, args.budget);
   payload = applyScheduleFields(payload, args.schedule);

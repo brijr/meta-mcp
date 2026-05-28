@@ -19,6 +19,11 @@ export const schema = {
   bid_amount: z.number().int().optional(),
   optimization_goal: z.string().optional(),
   billing_event: z.string().optional(),
+  promoted_object: jsonObjectSchema
+    .optional()
+    .describe(
+      "Promoted object for conversion/lead objectives, e.g. { pixel_id, custom_event_type } or { page_id }."
+    ),
   meta_overrides: metaOverridesSchema,
 };
 

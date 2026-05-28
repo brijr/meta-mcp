@@ -14,8 +14,21 @@ export const schema = {
   campaign_id: metaIdSchema,
   name: z.string(),
   targeting: jsonObjectSchema,
-  optimization_goal: z.string(),
-  billing_event: z.string(),
+  optimization_goal: z
+    .string()
+    .describe(
+      "Meta optimization goal, e.g. LINK_CLICKS, LANDING_PAGE_VIEWS, OFFSITE_CONVERSIONS, REACH, IMPRESSIONS, LEAD_GENERATION, THRUPLAY. Must be compatible with billing_event and the campaign objective."
+    ),
+  billing_event: z
+    .string()
+    .describe(
+      "How you are charged, e.g. IMPRESSIONS, LINK_CLICKS, THRUPLAY. Must be a valid pairing for optimization_goal (e.g. OFFSITE_CONVERSIONS bills on IMPRESSIONS; LINK_CLICKS optimization can bill on LINK_CLICKS or IMPRESSIONS)."
+    ),
+  promoted_object: jsonObjectSchema
+    .optional()
+    .describe(
+      "Required for conversion/lead objectives (e.g. OUTCOME_LEADS, OUTCOME_SALES). Example: { pixel_id, custom_event_type: 'PURCHASE' } or { page_id }."
+    ),
   budget: budgetSchema,
   schedule: scheduleSchema.optional(),
   status: z.string().optional(),
