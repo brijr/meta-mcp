@@ -55,21 +55,40 @@ export async function getAdAccountsService(
   context: MetaToolContext
 ) {
   try {
-    const response = await context.meta.list<Record<string, unknown>>(
-      "me/adaccounts",
-      {
-        fields: AD_ACCOUNT_FIELDS.join(","),
-        limit: args.limit,
-        after: args.after,
+    // Meta defaults to 25 results per page. Paginate through every page so a
+    // System User with many ad accounts gets all of them, not just the first
+    // page. (#17) `limit` controls the per-page size; the loop follows the
+    // `after` cursor until it is exhausted.
+    const pageSize = args.limit ?? 200;
+    const MAX_PAGES = 50;
+    const items: CachedAdAccount[] = [];
+    let after = args.after;
+
+    for (let page = 0; page < MAX_PAGES; page += 1) {
+      const response = await context.meta.list<Record<string, unknown>>(
+        "me/adaccounts",
+        {
+          fields: AD_ACCOUNT_FIELDS.join(","),
+          limit: pageSize,
+          after,
+        }
+      );
+
+      items.push(...response.items.map(normalizeAdAccount));
+
+      const next = response.page.after;
+      if (!next || next === after) {
+        break;
       }
-    );
-    const items = response.items.map(normalizeAdAccount);
+      after = next;
+    }
+
     await replaceCachedAdAccounts(context.auth.workspaceId, items);
     await markMetaConnectionValidation(context.auth.workspaceId, null);
 
     return {
       text: `Found ${items.length} Meta ad account(s).`,
-      data: toMetaListResult(items, response.page),
+      data: toMetaListResult(items),
     };
   } catch (error) {
     if (error instanceof MetaApiError) {
